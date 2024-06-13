@@ -1,25 +1,176 @@
-1. Set Up Django Project
-a. Create a new Django project:
-        django-admin startproject myproject
-        cd myproject
+# Django Project with Custom User Model and JWT Authentication
 
-b. Create a new Django app:
-python manage.py startapp accounts
+This project is a Python (Django) application that uses a custom user model with email authentication and JWT for secure authentication. The application is set up to be deployed on Render with Supabase as the PostgreSQL database.
 
-##Important
- python -m venv myenv 
- source myenv/bin/activate 
- pip install django 
+## Table of Contents
 
-2. Install Necessary Packages
-a. Install Django REST framework and Simple JWT:
-pip install djangorestframework djangorestframework-simplejwt
+- [Development Setup](#development-setup)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+  - [Database Migrations](#database-migrations)
+  - [Running the Server](#running-the-server)
+- [Production Deployment](#production-deployment)
+  - [Environment Configuration](#environment-configuration)
+  - [Render Setup](#render-setup)
+- [Testing Endpoints](#testing-endpoints)
+  - [Register User](#register-user)
+  - [Login User](#login-user)
+  - [Refresh Token](#refresh-token)
+  - [Get User Details](#get-user-details)
+
+## Development Setup
+
+### Installation
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/XKolz/django_auth_system
+   cd django_auth_system
+
+2. Create a virtual environment and activate it:
+        python -m venv myenv
+        source myenv/bin/activate  # On Windows, use (`myenv\Scripts\activate`)
+
+3. Install the required packages:
+        pip install -r requirements.txt
+- N.B: Run 
+        "pip install django" 
+        "djangorestframework" 
+        "djangorestframework-simplejwt" 
+        "psycopg2-binary" 
+if you have installed the dependencies already.
 
 b. Install PostgreSQL adapter for Python:
 pip install psycopg2-binary
 
 
-3. Configure Django Settings
+4. Configuration
+a. Create environment files:
+.env.development:
+        SECRET_KEY=your_local_secret_key
+        DEBUG=True
+        ALLOWED_HOSTS=localhost,127.0.0.1
+        DATABASE_URL=postgres://db_user:2415@localhost:5432/dn_name
+
+
+.env.production:
+        SECRET_KEY=your_production_secret_key
+        DEBUG=False
+        ALLOWED_HOSTS=your-production-domain.com
+        DATABASE_URL=postgres://your_db_user:your_db_password@db.your_supabase_project.supabase.co:5432/your_db_name
+
+
+5. Update settings.py to use environment variables and also if you want to connect to one or the another
+for Development
+
+        export ENV_FILE=.env.development
+For Production
+
+    export ENV_FILE=.env.production   
+
+6. Create a Procfile for deployment:
+    web: gunicorn myproject.wsgi
+
+7. Database Migrations
+Make migrations and migrate:
+        python manage.py makemigrations accounts
+        python manage.py migrate
+
+8. Collect static files:
+        python manage.py collectstatic
+
+## If you needd a superuser (which is good)
+- Create a superuser to access the Django admin:
+        python manage.py createsuperuser
+
+9. Running the Server
+Run the development server:
+        python manage.py runserver
+
+## Testing on your endpoints on POSTMAN/Swagger and likes:
+
+Register a users:POST
+http://127.0.0.1:8000/api/accounts/register/
+        {
+            "email": "34user@example.com",
+            "password": "password123",
+            "first_name": "3John",
+            "last_name": "Doe"
+        }
+
+Login existing users:POST
+http://127.0.0.1:8000/api/accounts/login/
+            {
+            "email": "34user@example.com",
+            "password": "password123"
+            }
+
+Get authenicated user's details:GET
+http://127.0.0.1:8000/api/accounts/user/
+Response:
+        {
+            "id": 1,
+            "email": "user@example.com",
+            "first_name": "John",
+            "last_name": "Doe"
+        }
+
+
+## For Production Setup
+
+- Set environment variables in Render based on .env.production:
+        SECRET_KEY=
+        DEBUG=
+        ALLOWED_HOSTS=
+        DATABASE_URL=
+
+Render Setup
+Create a Render account and new web service:
+1. Connect your GitHub repository.
+2. Set the build command: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+3. Set the start command: gunicorn myproject.wsgi
+
+Deploy the application:
+- Render will automatically build and deploy your application.
+
+Testing on your endpoints on POSTMAN/Swagger and likes
+POST
+https://djangotesting.onrender.com/api/accounts/register/
+
+        {
+        "email": "user@example.com",
+        "password": "password123",
+        "first_name": "John",
+        "last_name": "Doe"
+        }
+POST 
+https://djangotesting.onrender.com/api/accounts/login/
+
+        {
+        "email": "user@example.com",
+        "password": "password123"
+        }
+
+POST 
+https://djangotesting.onrender.com/api/accounts/token/refresh/
+
+        {
+        "refresh": "your_refresh_token"
+        }
+
+GET 
+https://djangotesting.onrender.com/api/accounts/user/
+Authorization: Bearer your_access_token
+        {
+        "id": 1,
+        "email": "user@example.com",
+        "first_name": "John",
+        "last_name": "Doe"
+        }
+
+
+## FYI. Configure Django Settings
 a. Update settings.py to include installed apps:
 
         INSTALLED_APPS = [
@@ -36,67 +187,3 @@ a. Update settings.py to include installed apps:
         }
 
         AUTH_USER_MODEL = 'accounts.User'
-
-b. Configure PostgreSQL database settings in settings.py:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': 'your_db_name',
-                'USER': 'your_db_user',
-                'PASSWORD': 'your_db_password',
-                'HOST': 'your_db_host',
-                'PORT': 'your_db_port',
-            }
-        }
-
-5. Create Serializers
-a. Define serializers in accounts/serializers.py:
-python
-
-
-8. Apply Migrations
-Run migrations to create the necessary database tables:
-
-        python manage.py makemigrations accounts
-        python manage.py makemigrations admin
-        python manage.py migrate
-
-
-10. Verify the Setup
-Create a superuser to access the Django admin:
-python manage.py createsuperuser
-
-b. Start the Django development server and verify the setup:
-python manage.py runserver
-
-
-11. Test Endpoints
-Register a new user:
-        curl -X POST http://127.0.0.1:8000/api/accounts/register/ \
-        -H "Content-Type: application/json" \
-        -d '{
-            "email": "user@example.com",
-            "password": "password123",
-            "first_name": "John",
-            "last_name": "Doe"
-            }'
-
-login
-curl -X POST http://127.0.0.1:8000/api/accounts/login/ \
--H "Content-Type: application/json" \
--d '{
-      "email": "user@example.com",
-      "password": "password123"
-    }'
-
-refresh
-curl -X POST http://127.0.0.1:8000/api/accounts/token/refresh/ \
--H "Content-Type: application/json" \
--d '{
-      "refresh": "your_refresh_token_here"
-    }'
-
-
-get user profile
-curl -X GET http://127.0.0.1:8000/api/accounts/user/ \
--H "Authorization: Bearer your_access_token_here"
