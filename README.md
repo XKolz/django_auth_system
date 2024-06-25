@@ -202,3 +202,6 @@ a. Update settings.py to include installed apps:
         }
 
         AUTH_USER_MODEL = 'accounts.User'
+
+
+pipreqs . for creating requirements.txt
