@@ -204,6 +204,9 @@ a. Update settings.py to include installed apps:
         AUTH_USER_MODEL = 'accounts.User'
 
 
+pipreqs . for creating requirements.txt
+
+
 
 <!-- Please discard this for now but they are useful information too -->
 ## To Get started with creating restful APIs with Django
